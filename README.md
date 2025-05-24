@@ -15,7 +15,7 @@ To get started with Node.js by building a basic server that serves a styled HTML
 
 ### 🛠️ Technologies Used :-
 
-- **Node.js** (built-in `http`, `fs`, and `path` modules)
+- **Node.js** (built-in `http`, `fs` modules)
 - **HTML5**
 - **CSS3**
 
