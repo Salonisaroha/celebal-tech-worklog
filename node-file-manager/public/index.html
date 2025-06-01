@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Manager</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        input, textarea, button { display: block; margin: 10px 0; width: 100%; padding: 8px; }
+        textarea { height: 100px; }
+        button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+        .status { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #dff0d8; color: #3c763d; }
+        .error { background: #f2dede; color: #a94442; }
+        #fileContent { white-space: pre-wrap; padding: 10px; background: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>File Management Tool</h1>
+    
+    <div class="section">
+        <h2>Create File</h2>
+        <form id="createForm">
+            <input type="text" id="filename" placeholder="Filename (e.g., test.txt)" required>
+            <textarea id="content" placeholder="File content"></textarea>
+            <button type="submit">Create</button>
+            <div id="createStatus" class="status"></div>
+        </form>
+    </div>
+    
+    <div class="section">
+        <h2>Read File</h2>
+        <form id="readForm">
+            <input type="text" id="readFilename" placeholder="Filename (e.g., test.txt)" required>
+            <button type="submit">Read</button>
+            <div id="readStatus" class="status"></div>
+        </form>
+        <div id="fileContent"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Delete File</h2>
+        <form id="deleteForm">
+            <input type="text" id="deleteFilename" placeholder="Filename (e.g., test.txt)" required>
+            <button type="submit">Delete</button>
+            <div id="deleteStatus" class="status"></div>
+        </form>
+    </div>
+    
+    <div class="section">
+        <h2>List Files</h2>
+        <button id="listFiles">List Files</button>
+        <div id="listStatus" class="status"></div>
+        <ul id="fileList"></ul>
+    </div>
+
+    <script>
+        function showStatus(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${isError ? 'error' : 'success'}`;
+        }
+
+        // Create File
+        document.getElementById('createForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const filename = document.getElementById('filename').value;
+            const content = document.getElementById('content').value;
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/files', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filename, content })
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Failed to create file');
+                
+                showStatus('createStatus', `Success: ${data.message}`);
+                document.getElementById('filename').value = '';
+                document.getElementById('content').value = '';
+            } catch (err) {
+                showStatus('createStatus', `Error: ${err.message}`, true);
+            }
+        });
+
+        // Read File
+        document.getElementById('readForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const filename = document.getElementById('readFilename').value;
+            
+            try {
+                const response = await fetch(`http://localhost:3000/api/files/${filename}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Failed to read file');
+                
+                document.getElementById('fileContent').textContent = data.content || data.message;
+                showStatus('readStatus', 'File read successfully');
+            } catch (err) {
+                document.getElementById('fileContent').textContent = '';
+                showStatus('readStatus', `Error: ${err.message}`, true);
+            }
+        });
+
+        // Delete File
+        document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const filename = document.getElementById('deleteFilename').value;
+            
+            try {
+                const response = await fetch(`http://localhost:3000/api/files/${filename}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Failed to delete file');
+                
+                showStatus('deleteStatus', `Success: ${data.message}`);
+                document.getElementById('deleteFilename').value = '';
+            } catch (err) {
+                showStatus('deleteStatus', `Error: ${err.message}`, true);
+            }
+        });
+
+        // List Files
+        document.getElementById('listFiles').addEventListener('click', async () => {
+            try {
+                const response = await fetch('http://localhost:3000/api/files');
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || 'Failed to list files');
+                
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+                
+                if (data.files && data.files.length > 0) {
+                    data.files.forEach(file => {
+                        const li = document.createElement('li');
+                        li.textContent = file;
+                        fileList.appendChild(li);
+                    });
+                    showStatus('listStatus', `Found ${data.files.length} files`);
+                } else {
+                    showStatus('listStatus', 'No files found');
+                }
+            } catch (err) {
+                showStatus('listStatus', `Error: ${err.message}`, true);
+            }
+        });
+    </script>
+</body>
+</html>
