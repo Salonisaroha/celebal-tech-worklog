@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Leave Management System</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>🌿 Leave Management System</h1>
+
+    <div class="form-section">
+      <h2>Apply for Leave</h2>
+      <input type="text" id="name" placeholder="Employee Name" />
+      <input type="text" id="reason" placeholder="Reason" />
+      <input type="date" id="from" />
+      <input type="date" id="to" />
+      <button onclick="applyLeave()">Submit</button>
+    </div>
+
+    <div class="list-section">
+      <h2>All Leave Requests</h2>
+      <button onclick="fetchLeaves()">🔄 Refresh</button>
+      <div id="leaves" class="leave-list"></div>
+    </div>
+  </div>
+</body>
+</html>
